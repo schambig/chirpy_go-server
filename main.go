@@ -7,9 +7,13 @@ import (
 
 func main() {
 	const port = "8080"
+	const filepathRoot = "."
 
 	// create a new ServeMux (HTTP request multiplexer) to route incoming requests
 	mux := http.NewServeMux()
+
+	// build and run fileserver that serves `index.html` file from root at port 8080
+	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
 
 	// create and Initialize http.Server Struct (as Pointer)
 	// memory efficiency: Only the pointer (which is small) is passed around,
@@ -19,7 +23,7 @@ func main() {
 		Handler: mux, // this tells the server to route incoming requests using the ServeMux
 	}
 
-	log.Printf("...⚡ Serving on port: %v\n", port)
+	log.Printf("...⚡ Serving files from %s on port: %v\n", filepathRoot, port)
 	log.Println("...💀 Close the server with `Ctrl + C`")
 
 	// start the server, use 'ListenAndServe' method,
