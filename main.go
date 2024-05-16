@@ -30,7 +30,7 @@ func main() {
 
 	log.Printf("...⚡ Serving files from %s on port: %s\n", filepathRoot, port)
 	// log.Printf("...⚡ Serving on port: %s\n", port)
-	log.Println("...💀 Close the server with `Ctrl + C`")
+	log.Println("...💀 Stop the server using `Ctrl + C`")
 
 	// start the server, use 'ListenAndServe' method,
 	// using 'ListenAndServe', the main function blocks until the server is shut down
