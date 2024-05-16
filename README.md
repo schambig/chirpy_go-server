@@ -2,6 +2,8 @@ Building a Go Web Server from scratch.
 
 A web server is just a computer that serves data over a network, typically the Internet.
 
+Servers run software that listens for incoming requests from clients. When a request is received, the server responds with the requested data.
+
 ```mermaid
 graph TD
     A[Client] -->|HTTP Request| B[Server]
