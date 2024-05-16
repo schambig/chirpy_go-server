@@ -33,6 +33,7 @@ func main() {
 	log.Println("...💀 Close the server with `Ctrl + C`")
 
 	// start the server, use 'ListenAndServe' method,
+	// using 'ListenAndServe', the main function blocks until the server is shut down
 	// log.Fatal: logs the error returned by ListenAndServe and exits the program immediately
 	log.Fatal(server.ListenAndServe())
 }
