@@ -34,7 +34,7 @@ graph TD
     E -->|Trigger| J[Webhooks]
     J -->|Send Data| K[External Service]
 ```
-Brief explanation of the key point from graph above:
+Brief explanation of the key points from the graph above:
 - **Client**: Initiates the HTTP request.
 - **Server**: Handles the incoming HTTP request.
 - **Router**: Directs the request to the appropriate controller.
