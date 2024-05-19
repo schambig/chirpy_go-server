@@ -16,7 +16,7 @@ func main() {
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
 
 	// register the /healthz endpoint
-	mux.HandleFunc("/healthz", healthCheckHandler)
+	mux.HandleFunc("/healthz", handleReadiness)
 
 
 	server := &http.Server{
@@ -32,7 +32,7 @@ func main() {
 }
 
 // Handler function for /healthz
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func handleReadiness(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "text/plain; charset=utf-8")
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("OK"))
