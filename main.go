@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync"
 )
 
 // struct to hold any stateful (in-memory data)
 type apiConfig struct {
 	fileserverHits int
+	mu sync.RWMutex // only need one RWMutex to handle both reads and writes
 }
 
 func main() {
