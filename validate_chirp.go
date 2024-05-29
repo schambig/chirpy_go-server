@@ -10,6 +10,11 @@ type validChirp struct {
 	Body string `json:"body"`
 }
 
+// struct to return marshaled JSON
+type returnChirp struct {
+	Valid bool `json:"valid"`
+}
+
 func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	var chirp validChirp
 
@@ -31,5 +36,8 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	// respond with successful message if all went as expected
-	respondWithJSON(w, http.StatusOK, map[string]bool{"valid":true})
+	// respondWithJSON(w, http.StatusOK, map[string]bool{"valid":true}) // a map can be marshalled
+	respondWithJSON(w, http.StatusOK, returnChirp{
+		Valid: true,
+	})
 }
