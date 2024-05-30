@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	// "log"
+	"strings"
 )
 
 // struct for the json body to expect
@@ -12,7 +14,7 @@ type validChirp struct {
 
 // struct to return marshaled JSON
 type returnChirp struct {
-	Valid bool `json:"valid"`
+	CleanedBody string `json:"cleaned_body"`
 }
 
 func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
@@ -34,10 +36,29 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return		
 	}
+
+	newBody := replaceProfaneWords(w, chirp.Body)
 	
 	// respond with successful message if all went as expected
 	// respondWithJSON(w, http.StatusOK, map[string]bool{"valid":true}) // a map can be marshalled
 	respondWithJSON(w, http.StatusOK, returnChirp{
-		Valid: true,
+		CleanedBody: newBody,
 	})
+}
+
+func replaceProfaneWords(w http.ResponseWriter, msg string) string {
+	// log.Printf("   >>>THIS IS THE PAYLOAD BODY: %s", msg)
+	strSplitted := strings.Split(msg, " ")
+	// log.Printf("   >>>STR LOWERED AND SPLITTED: %s", strLowerAndSplitted)
+	var newString []string
+	for _, e := range strSplitted {
+		if strings.ToLower(e) == "kerfuffle" || strings.ToLower(e) == "sharbert" || strings.ToLower(e) == "fornax" {
+			newString = append(newString, "****")
+		} else {
+			newString = append(newString, e)
+		}
+	}
+	// respondWithJSON(w, http.StatusOK, )
+	// log.Println(strings.Join(newString, " "))
+	return strings.Join(newString, " ")
 }
