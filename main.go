@@ -29,9 +29,10 @@ func main() {
 
 	// endpoint registers
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
-	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("GET /api/reset", apiCfg.handlerReset)
 	mux.HandleFunc("POST /api/validate_chirp", handlerValidChirp)
+	
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
 	server := &http.Server{
 		// Addr:    ":" + port, // binds to all interfaces
