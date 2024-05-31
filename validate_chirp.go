@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // struct for the json body to expect
@@ -13,13 +14,23 @@ type validChirp struct {
 
 // struct to return marshaled JSON
 type returnChirp struct {
-	CleanedBody string `json:"cleaned_body"`
+	Body string `json:"body"`
+	Id int `json:"id"`
 }
+
+// struct to hold next id state (in-memory data)
+type chirpId struct {
+	nextID int
+	mu sync.RWMutex
+}
+
+var chirpCounter = &chirpId{}
 
 func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	var chirp validChirp
 
 	// decode the json request body into the chirp variable
+	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&chirp)
 	if err != nil {
@@ -42,11 +53,12 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 		"fornax": {},
 	}
 	cleanedBody := replaceProfaneWords(chirp.Body, badWords)
-	
+	id := chirpCounter.getID()
+
 	// respond with successful message if all went as expected
-	// respondWithJSON(w, http.StatusOK, map[string]bool{"valid":true}) // a map can be marshalled
-	respondWithJSON(w, http.StatusOK, returnChirp{
-		CleanedBody: cleanedBody,
+	respondWithJSON(w, http.StatusCreated, returnChirp{
+		Body: cleanedBody,
+		Id: id,
 	})
 }
 
@@ -59,4 +71,12 @@ func replaceProfaneWords(body string, badWords map[string]struct{}) string {
 		}
 	}
 	return strings.Join(words, " ")
+}
+
+func (ci *chirpId) getID() int {
+	chirpCounter.mu.Lock()
+	defer chirpCounter.mu.Unlock()
+
+	ci.nextID += 1
+	return ci.nextID
 }
