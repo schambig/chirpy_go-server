@@ -83,6 +83,21 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func handlerGetChirps(w http.ResponseWriter, r *http.Request) {
+	dbStructure := loadChirpsFromFile()
+
+	var chirps []returnChirp
+	for _, chirp := range dbStructure.Chirps {
+		chirps = append(chirps, chirp)
+	}
+
+	sort.Slice(chirps, func(i, j int) bool {
+		return chirps[i].Id < chirps[j].Id
+	})
+
+	respondWithJSON(w, http.StatusOK, chirps)
+}
+
 func replaceProfaneWords(body string, badWords map[string]struct{}) string {
 	words := strings.Split(body, " ")
 	for i, word := range words {
