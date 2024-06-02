@@ -59,15 +59,25 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 		"sharbert": {},
 		"fornax": {},
 	}
-	cleanedBody := replaceProfaneWords(chirp.Body, badWords)
 	id := chirpCounter.getID()
+	cleanedBody := replaceProfaneWords(chirp.Body, badWords)
+
+	// respond with successful message if all went as expected
+	respondWithJSON(w, http.StatusCreated, returnChirp{
+		Id: id,
+		Body: cleanedBody,
+	})
 
 	newChirp := returnChirp{
 		Id: id,
 		Body: cleanedBody,
 	}
 
-	dbStructure := loadChirpsFromFile()
+	dbStructure, err := loadChirpsFromFile()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error loading chirps")
+		return
+	}
 	dbStructure.Chirps[id] = newChirp
 
 	err = writeToDatabaseFile(dbStructure)
@@ -75,16 +85,14 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Failed to save chirp")
 		return
 	}
-
-	// respond with successful message if all went as expected
-	respondWithJSON(w, http.StatusCreated, returnChirp{
-		Id: id,
-		Body: cleanedBody,
-	})
 }
 
 func handlerGetChirps(w http.ResponseWriter, r *http.Request) {
-	dbStructure := loadChirpsFromFile()
+	dbStructure, err := loadChirpsFromFile()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error loading chirps")
+		return
+	}
 
 	var chirps []returnChirp
 	for _, chirp := range dbStructure.Chirps {
@@ -126,21 +134,23 @@ func writeToDatabaseFile(data interface{}) error {
 	return os.WriteFile("./database.json", dat, 0644)
 }
 
-func loadChirpsFromFile() DBStructure {
+// when error occurs, create and return a new DBStructure with an empty map,
+// which initializes the structure to ensure the rest of the program can still operate.
+func loadChirpsFromFile() (DBStructure, error) {
 	file, err := os.ReadFile("./database.json")
 	if err != nil {
 		if os.IsNotExist(err) {
-			return DBStructure{Chirps: make(map[int]returnChirp)}
+			return DBStructure{Chirps: make(map[int]returnChirp)}, nil
 		}
 		log.Printf("Error reading database file: %v", err)
-		return DBStructure{Chirps: make(map[int]returnChirp)}
+		return DBStructure{Chirps: make(map[int]returnChirp)}, err
 	}
 
 	var dbStruct DBStructure
 	err = json.Unmarshal(file, &dbStruct)
 	if err != nil {
 		log.Printf("Error unmarshalling JSON: %v", err)
-		return DBStructure{Chirps: make(map[int]returnChirp)}
+		return DBStructure{Chirps: make(map[int]returnChirp)}, err
 	}
-	return dbStruct
+	return dbStruct, nil
 }
