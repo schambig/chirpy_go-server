@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sort"
+	"log"
+	"os"
 )
 
 // struct for the json body to expect
@@ -14,8 +17,8 @@ type validChirp struct {
 
 // struct to return marshaled JSON
 type returnChirp struct {
-	Body string `json:"body"`
 	Id int `json:"id"`
+	Body string `json:"body"`
 }
 
 // struct to hold next id state (in-memory data)
@@ -25,6 +28,10 @@ type chirpId struct {
 }
 
 var chirpCounter = &chirpId{}
+
+type DBStructure struct {
+	Chirps map[int]returnChirp `json:"chirps"`
+}
 
 func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	var chirp validChirp
@@ -55,10 +62,24 @@ func handlerValidChirp(w http.ResponseWriter, r *http.Request) {
 	cleanedBody := replaceProfaneWords(chirp.Body, badWords)
 	id := chirpCounter.getID()
 
+	newChirp := returnChirp{
+		Id: id,
+		Body: cleanedBody,
+	}
+
+	dbStructure := loadChirpsFromFile()
+	dbStructure.Chirps[id] = newChirp
+
+	err = writeToDatabaseFile(dbStructure)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to save chirp")
+		return
+	}
+
 	// respond with successful message if all went as expected
 	respondWithJSON(w, http.StatusCreated, returnChirp{
-		Body: cleanedBody,
 		Id: id,
+		Body: cleanedBody,
 	})
 }
 
@@ -79,4 +100,32 @@ func (ci *chirpId) getID() int {
 
 	ci.nextID += 1
 	return ci.nextID
+}
+
+func writeToDatabaseFile(data interface{}) error {
+	dat, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		return err
+	}
+	
+	return os.WriteFile("./database.json", dat, 0644)
+}
+
+func loadChirpsFromFile() DBStructure {
+	file, err := os.ReadFile("./database.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return DBStructure{Chirps: make(map[int]returnChirp)}
+		}
+		log.Printf("Error reading database file: %v", err)
+		return DBStructure{Chirps: make(map[int]returnChirp)}
+	}
+
+	var dbStruct DBStructure
+	err = json.Unmarshal(file, &dbStruct)
+	if err != nil {
+		log.Printf("Error unmarshalling JSON: %v", err)
+		return DBStructure{Chirps: make(map[int]returnChirp)}
+	}
+	return dbStruct
 }
