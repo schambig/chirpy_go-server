@@ -9,7 +9,7 @@ import (
 
 type DB struct {
 	path string
-	mu sync.RWMutex
+	mu *sync.RWMutex // pointer, to use a single/shared inst. of the mutex
 }
 
 type DBStructure struct {
@@ -22,4 +22,28 @@ type Chirp struct {
 
 }
 
-func (db *DB) createDB(path string)
+// constructor function (struct instantiator), NOT a receiver method 
+func NewDB(path string) (DB, error) {
+	db := &DB{
+		path: path,
+		mu: &sync.RWMutex{},
+	}
+	err := db.ensureDB()
+	return db, err
+}
+
+// receiver methods (use existing struct instance)
+func (db *DB) ensureDB() error {
+	_, err := os.ReadFile(db.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return db.createDB()
+	}
+	return err
+}
+
+func (db *DB) createDB() error {
+	dbStructure := DBStructure{
+		Chirps: map[int]Chirp{},
+	}
+	return db.writeDB(dbStructure)
+}
