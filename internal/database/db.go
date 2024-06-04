@@ -48,10 +48,9 @@ func (db *DB) createDB() error {
 	return db.writeDB(dbStructure)
 }
 
-
 func (db *DB) writeDB(dbStructure DBStructure) error {
 	db.mu.Lock()
-	defer db.mu.Lock()
+	defer db.mu.Unlock()
 
 	dat, err := json.MarshalIndent(dbStructure, "", " ")
 	if err != nil {
