@@ -16,12 +16,6 @@ type DBStructure struct {
 	Chirps map[int]Chirp `json:"chirps"` 
 }
 
-type Chirp struct {
-	ID int `json:"id"`
-	Body string `json:"body"`
-
-}
-
 // constructor function (struct instantiator), NOT a receiver method 
 func NewDB(path string) (DB, error) {
 	db := &DB{
@@ -57,9 +51,29 @@ func (db *DB) writeDB(dbStructure DBStructure) error {
 		return err
 	}
 
-	err := os.WriteFile(db.path, dat, 644)
+	err = os.WriteFile(db.path, dat, 644)
 	if err != nil {
 		return err
 	}
 	return nil	
+}
+
+func (db *DB) loadDB() (DBStructure, error) {
+	db.mu.RLock()
+	defer db.mu.RUnlock()	
+
+	// initialize dbStructure with a non-nil Chirps map to avoid runtime error
+	dbStructure := DBStructure{
+		Chirp: map[int]Chirp{},
+	}
+	dat, err := os.ReadFile(db.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return dbStructure, err
+	}
+	err = json.Unmarshal(dat, &dbStructure)
+	if err != nil {
+		return dbStructure, err
+	}
+
+	return dbStructure, nil
 }
