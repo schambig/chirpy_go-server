@@ -47,3 +47,20 @@ func (db *DB) createDB() error {
 	}
 	return db.writeDB(dbStructure)
 }
+
+
+func (db *DB) writeDB(dbStructure DBStructure) error {
+	db.mu.Lock()
+	defer db.mu.Lock()
+
+	dat, err := json.MarshalIndent(dbStructure, "", " ")
+	if err != nil {
+		return err
+	}
+
+	err := os.WriteFile(db.path, dat, 644)
+	if err != nil {
+		return err
+	}
+	return nil	
+}
