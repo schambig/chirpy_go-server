@@ -17,7 +17,7 @@ type DBStructure struct {
 }
 
 // constructor function (struct instantiator), NOT a receiver method 
-func NewDB(path string) (DB, error) {
+func NewDB(path string) (*DB, error) {
 	db := &DB{
 		path: path,
 		mu: &sync.RWMutex{},
@@ -55,6 +55,7 @@ func (db *DB) writeDB(dbStructure DBStructure) error {
 	if err != nil {
 		return err
 	}
+	
 	return nil	
 }
 
