@@ -24,3 +24,17 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 
 	return chirp, nil
 }
+
+func (db *DB) GetChirp() ([]Chirp, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return nil, err
+	}
+	
+	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
+	for _, chirp := range dbStructure.Chirps {
+		chirps = append(chirps, chirp)
+	}
+
+	return chirps, nil
+}
