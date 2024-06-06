@@ -16,7 +16,10 @@ type DBStructure struct {
 	Chirps map[int]Chirp `json:"chirps"` 
 }
 
-// constructor function (struct instantiator), NOT a receiver method 
+// constructor function (struct instantiator), NOT a receiver method
+
+// NewDB creates a new database connection
+// and creates the database file if it doesn't exist 
 func NewDB(path string) (*DB, error) {
 	db := &DB{
 		path: path,
@@ -27,6 +30,8 @@ func NewDB(path string) (*DB, error) {
 }
 
 // receiver methods (use existing struct instance)
+
+// ensureDB creates a new database file if it doesn't exist
 func (db *DB) ensureDB() error {
 	_, err := os.ReadFile(db.path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -42,6 +47,7 @@ func (db *DB) createDB() error {
 	return db.writeDB(dbStructure)
 }
 
+// writeDB writes the database file to disk
 func (db *DB) writeDB(dbStructure DBStructure) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -59,6 +65,7 @@ func (db *DB) writeDB(dbStructure DBStructure) error {
 	return nil	
 }
 
+// loadDB reads the database file into memory
 func (db *DB) loadDB() (DBStructure, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()	
