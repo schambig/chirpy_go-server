@@ -5,6 +5,7 @@ type Chirp struct {
 	Body string `json:"body"`
 }
 
+// CreateChirp creates a new chirp and saves it to disk
 func (db *DB) CreateChirp(body string) (Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
@@ -25,6 +26,7 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 	return chirp, nil
 }
 
+// GetChirps returns all chirps in the database
 func (db *DB) GetChirp() ([]Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
