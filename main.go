@@ -4,23 +4,34 @@ import (
 	"net/http"
 	"sync"
 	"log"
+
+	"github.com/schambig/chirpy_go-server/internal/database"
 )
 
 // struct to hold any stateful (in-memory data)
 type apiConfig struct {
 	fileserverHits int
 	mu sync.RWMutex // only need one RWMutex to handle both reads and writes
+
+	DB *database.DB
 }
 
 func main() {
 	const port = "8080"
 	const filepathRoot = "."
 
-	// create a new ServeMux (HTTP request multiplexer) to route incoming requests
-	mux := http.NewServeMux()
+	db, err := database.NewDB("database.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// intanciate from struct
-	apiCfg := &apiConfig{}
+	apiCfg := &apiConfig{
+		DB: db,
+	}
+
+	// create a new ServeMux (HTTP request multiplexer) to route incoming requests
+	mux := http.NewServeMux()
 
 	// use a variable to avoid long line
 	fileServerHandler := http.FileServer(http.Dir(filepathRoot))
