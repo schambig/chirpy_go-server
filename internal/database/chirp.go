@@ -27,7 +27,7 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 }
 
 // GetChirps returns all chirps in the database
-func (db *DB) GetChirp() ([]Chirp, error) {
+func (db *DB) GetChirps() ([]Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return nil, err
