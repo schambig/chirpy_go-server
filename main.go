@@ -26,8 +26,8 @@ func main() {
 	}
 
 	// intanciate from struct
-	apiCfg := &apiConfig{
-		DB: db,
+	apiCfg := apiConfig{
+		DB: db, // just initialize DB field from struct
 	}
 
 	// create a new ServeMux (HTTP request multiplexer) to route incoming requests
@@ -41,8 +41,8 @@ func main() {
 	// endpoint registers
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("GET /api/reset", apiCfg.handlerReset)
-	mux.HandleFunc("POST /api/chirps", handlerCreateChirps)
-	mux.HandleFunc("GET /api/chirps", handlerGetChirps)
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirps)
+	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetChirps)
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
