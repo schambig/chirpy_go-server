@@ -17,7 +17,7 @@ func (cfg *apiConfig) handlerCreateChirps(w http.ResponseWriter, r *http.Request
 		Body string `json:"body"`
 	}
 
-	defer r.Boby.Close()
+	// defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
@@ -26,7 +26,7 @@ func (cfg *apiConfig) handlerCreateChirps(w http.ResponseWriter, r *http.Request
 		return		
 	}
 
-	cleaned, err := validateChirp(params.Boby)
+	cleaned, err := validateChirp(params.Body)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return		
@@ -40,7 +40,7 @@ func (cfg *apiConfig) handlerCreateChirps(w http.ResponseWriter, r *http.Request
 
 	respondWithJSON(w, http.StatusCreated, Chirp{
 		ID: chirp.ID,
-		Boby: chirp.Boby,
+		Body: chirp.Body,
 	})
 }
 
