@@ -16,7 +16,7 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 	for _, dbChirp := range dbChirps {
 		chirps = append(chirps, Chirp{
 			ID: dbChirp.ID,
-			Boby: dbChirp.Boby,
+			Body: dbChirp.Body,
 		})
 	}
 
@@ -24,5 +24,5 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 		return chirps[i].ID < chirps[j].ID
 	})
 
-	respondWithJSON(w, http.StatusOk, chirps)
+	respondWithJSON(w, http.StatusOK, chirps)
 }
