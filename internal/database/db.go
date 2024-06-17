@@ -57,7 +57,7 @@ func (db *DB) writeDB(dbStructure DBStructure) error {
 		return err
 	}
 
-	err = os.WriteFile(db.path, dat, 644)
+	err = os.WriteFile(db.path, dat, 0644)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (db *DB) loadDB() (DBStructure, error) {
 
 	// initialize dbStructure with a non-nil Chirps map to avoid runtime error
 	dbStructure := DBStructure{
-		Chirp: map[int]Chirp{},
+		Chirps: map[int]Chirp{},
 	}
 	dat, err := os.ReadFile(db.path)
 	if errors.Is(err, os.ErrNotExist) {
