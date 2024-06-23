@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var ErrNotExist = errors.New("Resource does not exist")
+
 type DB struct {
 	path string
 	mu *sync.RWMutex // pointer, to use a single/shared inst. of the mutex
