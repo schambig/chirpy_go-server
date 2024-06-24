@@ -97,9 +97,9 @@ func (db *DB) GetChirpByID(chirpID int) (Chirp, error) {
 		return Chirp{}, err
 	}
 
-	chirp, exists := dbStructure.Chirps[chirpID]
-	if !exists {
-		return Chirp{}, errors.New("Chirp not found")
+	chirp, ok := dbStructure.Chirps[chirpID]
+	if !ok {
+		return Chirp{}, ErrNotExist
 	}
 	return chirp, nil
 }
