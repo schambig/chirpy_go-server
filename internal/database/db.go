@@ -15,7 +15,8 @@ type DB struct {
 }
 
 type DBStructure struct {
-	Chirps map[int]Chirp `json:"chirps"` 
+	Chirps map[int]Chirp `json:"chirps"`
+	Users map[int]User `json:"users"`
 }
 
 // constructor function (struct instantiator), NOT a receiver method
@@ -45,6 +46,7 @@ func (db *DB) ensureDB() error {
 func (db *DB) createDB() error {
 	dbStructure := DBStructure{
 		Chirps: map[int]Chirp{},
+		Users: map[int]User{},
 	}
 	return db.writeDB(dbStructure)
 }
@@ -75,6 +77,7 @@ func (db *DB) loadDB() (DBStructure, error) {
 	// initialize dbStructure with a non-nil Chirps map to avoid runtime error
 	dbStructure := DBStructure{
 		Chirps: map[int]Chirp{},
+		Users: map[int]User{},
 	}
 	dat, err := os.ReadFile(db.path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -86,20 +89,4 @@ func (db *DB) loadDB() (DBStructure, error) {
 	}
 
 	return dbStructure, nil
-}
-
-func (db *DB) GetChirpByID(chirpID int) (Chirp, error) {
-	db.mu.RLock()
-	defer db.mu.RUnlock()
-
-	dbStructure, err := db.loadDB()
-	if err != nil {
-		return Chirp{}, err
-	}
-
-	chirp, ok := dbStructure.Chirps[chirpID]
-	if !ok {
-		return Chirp{}, ErrNotExist
-	}
-	return chirp, nil
 }
