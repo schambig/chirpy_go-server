@@ -2,11 +2,12 @@ package database
 
 type User struct {
 	ID int `json:"id"`
+	Password string `json:"password"`
 	Email string `json:"email"`
 }
 
 // CreateUser creates a new user and saves it to disk
-func (db *DB) CreateUser(email string) (User, error) {
+func (db *DB) CreateUser(email string, password string) (User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
@@ -14,6 +15,7 @@ func (db *DB) CreateUser(email string) (User, error) {
 	id := len(dbStructure.Users) + 1
 	user := User{
 		ID: id,
+		Password: password,
 		Email: email,
 	}
 	dbStructure.Users[id] = user
