@@ -1,5 +1,9 @@
 package database
 
+import (
+	"errors"
+)
+
 type User struct {
 	ID int `json:"id"`
 	Password string `json:"password"`
@@ -28,7 +32,7 @@ func (db *DB) CreateUser(email string, password string) (User, error) {
 	return user, nil
 }
 
-/* // GetUsers returns all users in the database
+// GetUsers returns all users in the database
 func (db *DB) GetUsers() ([]User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
@@ -43,18 +47,20 @@ func (db *DB) GetUsers() ([]User, error) {
 	return users, nil
 }
 
-func (db *DB) GetUserByID(id int) (User, error) {
+func (db *DB) GetUserByEmail(email string) (User, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
-	dbStructure, err := db.loadDB()
+	usrs, err := db.GetUsers()
 	if err != nil {
 		return User{}, err
 	}
 
-	user, ok := dbStructure.Users[id]
-	if !ok {
-		return User{}, ErrNotExist
+	for _, user := range usrs {
+		if user.Email == email {
+			return user, nil
+		}
 	}
-	return user, nil
-} */
+
+	return User{}, errors.New("Email not found")
+}
