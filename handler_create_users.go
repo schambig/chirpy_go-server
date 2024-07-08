@@ -36,7 +36,7 @@ func (cfg *apiConfig) handlerCreateUsers(w http.ResponseWriter, r *http.Request)
 
 	user, err := cfg.DB.CreateUser(params.Email, string(hashedPassword))
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return		
 	}
 
