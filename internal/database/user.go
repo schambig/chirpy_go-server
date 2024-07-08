@@ -16,6 +16,18 @@ func (db *DB) CreateUser(email string, password string) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
+
+	usrs, err := db.GetUsers()
+	if err != nil {
+		return User{}, err
+	}
+
+	for _, user := range usrs {
+		if user.Email == email {
+			return User{}, errors.New("Email already in use")
+		}
+	}
+
 	id := len(dbStructure.Users) + 1
 	user := User{
 		ID: id,
