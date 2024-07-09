@@ -6,33 +6,35 @@ import (
 
 type User struct {
 	ID int `json:"id"`
-	Password string `json:"password"`
 	Email string `json:"email"`
+	HashedPassword string `json:"password"`
 }
 
+var ErrAlreadyExists = errors.New("Already exists")
+
 // CreateUser creates a new user and saves it to disk
-func (db *DB) CreateUser(email string, password string) (User, error) {
+func (db *DB) CreateUser(email, hashedPassword string) (User, error) {
+	/* if _, err := db.GetUserByEmail(email); err != nil {
+		if !errors.Is(err, ErrNotExist) {
+			return User{}, ErrAlreadyExists
+		}
+	} */
+	
+	// same as above but shorter
+	if _, err := db.GetUserByEmail(email); !errors.Is(err, ErrNotExist) {
+		return User{}, ErrAlreadyExists
+	}
+
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
 	}
 
-	usrs, err := db.GetUsers()
-	if err != nil {
-		return User{}, err
-	}
-
-	for _, user := range usrs {
-		if user.Email == email {
-			return User{}, errors.New("Email already in use")
-		}
-	}
-
 	id := len(dbStructure.Users) + 1
 	user := User{
 		ID: id,
-		Password: password,
 		Email: email,
+		HashedPassword: hashedPassword,
 	}
 	dbStructure.Users[id] = user
 	
@@ -63,16 +65,16 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
-	usrs, err := db.GetUsers()
+	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
 	}
 
-	for _, user := range usrs {
+	for _, user := range dbStructure.Users {
 		if user.Email == email {
 			return user, nil
 		}
 	}
 
-	return User{}, errors.New("Email not found")
+	return User{}, ErrNotExist
 }
