@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"errors"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/schambig/chirpy_go-server/internal/auth"
+	"github.com/schambig/chirpy_go-server/internal/database"
 )
 
 type User struct {
@@ -26,17 +28,20 @@ func (cfg *apiConfig) handlerCreateUsers(w http.ResponseWriter, r *http.Request)
 		return		
 	}
 
-	pass := []byte(params.Password)
-	cost := bcrypt.DefaultCost
-	hashedPassword, err := bcrypt.GenerateFromPassword(pass, cost)
+	hashedPassword, err := auth.HashPassword(params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password")
 		return
 	}
 
-	user, err := cfg.DB.CreateUser(params.Email, string(hashedPassword))
+	user, err := cfg.DB.CreateUser(params.Email, hashedPassword)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, database.ErrAlreadyExists) {
+			respondWithError(w, http.StatusConflict, "Email already in use")
+			return	
+		}
+
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
 		return		
 	}
 
