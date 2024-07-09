@@ -37,6 +37,7 @@ func NewDB(path string) (*DB, error) {
 // ensureDB creates a new database file if it doesn't exist
 func (db *DB) ensureDB() error {
 	_, err := os.ReadFile(db.path)
+	// must use os package for the app to check the OS for the database.json file
 	if errors.Is(err, os.ErrNotExist) {
 		return db.createDB()
 	}
@@ -80,6 +81,7 @@ func (db *DB) loadDB() (DBStructure, error) {
 		Users: map[int]User{},
 	}
 	dat, err := os.ReadFile(db.path)
+	// since it won't create the database.json if error happens, `os` is optional
 	if errors.Is(err, os.ErrNotExist) {
 		return dbStructure, err
 	}
