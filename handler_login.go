@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/schambig/chirpy_go-server/internal/auth"
 )
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -21,20 +21,20 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return		
 	}
 	
-	userInDB, err := cfg.DB.GetUserByEmail(params.Email)
+	user, err := cfg.DB.GetUserByEmail(params.Email)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, err.Error())
+		respondWithError(w, http.StatusInternalServerError, "Couldn't get user")
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(userInDB.Password), []byte(params.Password))
+	err = auth.CheckHashPassword(user.HashedPassword, params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Password didn't match, try again")
 		return
 	}
 
 	respondWithJSON(w, http.StatusOK, User{
-		ID: userInDB.ID,
-		Email: userInDB.Email,
+		ID: user.ID,
+		Email: user.Email,
 	})
 }
