@@ -35,6 +35,16 @@ func NewDB(path string) (*DB, error) {
 // receiver methods (use existing struct instance)
 
 // ensureDB creates a new database file if it doesn't exist
+
+func (db *DB) ResetDB() error {
+	err := os.Remove(db.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	return db.ensureDB()
+}
+
 func (db *DB) ensureDB() error {
 	_, err := os.ReadFile(db.path)
 	// must use os package for the app to check the OS for the database.json file
