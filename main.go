@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"flag"
 	"sync"
 	"log"
 
@@ -25,6 +26,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// defines a bool flag with specified name, default value, and usage string.
+	// the return value is the address of a bool variable that stores the value of the flag
+	dbg := flag.Bool("debug", false, "Enable debug mode")
+	// parse the command line and fill in the value of the pointer
+	flag.Parse()
+	if *dbg {
+		err := db.ResetDB()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	// intanciate from struct
 	apiCfg := apiConfig{
 		DB: db, // just initialize DB field from struct
@@ -41,12 +54,14 @@ func main() {
 	// endpoint registers
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("GET /api/reset", apiCfg.handlerReset)
+
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirps)
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetChirps)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirpID)
+	
 	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUsers)
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
-
+	
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
 	server := &http.Server{
