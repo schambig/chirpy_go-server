@@ -5,19 +5,28 @@ import (
 	"flag"
 	"sync"
 	"log"
+	"os"
 
 	"github.com/schambig/chirpy_go-server/internal/database"
+	"github.com/joho/godotenv"
 )
 
 // struct to hold any stateful (in-memory data)
 type apiConfig struct {
 	fileserverHits int
 	mu sync.RWMutex // only need one RWMutex to handle both reads and writes
-
 	DB *database.DB
+	JwtSecret string
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+	  log.Fatal("Error loading .env file")
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+
 	const port = "8080"
 	const filepathRoot = "."
 
@@ -41,6 +50,7 @@ func main() {
 	// intanciate from struct
 	apiCfg := apiConfig{
 		DB: db, // just initialize DB field from struct
+		JwtSecret: jwtSecret,
 	}
 
 	// create a new ServeMux (HTTP request multiplexer) to route incoming requests
