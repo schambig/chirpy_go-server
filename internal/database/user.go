@@ -78,3 +78,35 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 
 	return User{}, ErrNotExist
 }
+
+func (db *DB) UpdateUser(userID int, email, hashedPassword string ) (User, error) {
+	// for modifying the database, use Lock and Unlock
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, err
+	}
+
+	// ensure the user exists
+	// Go's map structure can return 2 values when accessing an element by key
+	// - The value associated with the key (if it exists)
+	// - A boolean indicating if the key was found
+	user, exists := dbStructure.Users[userID]
+	if !exists {
+		return User{}, ErrNotExist
+	}
+
+	user.Email = email
+	user.HashedPassword = hashedPassword
+	dbStructure.Users[userID] = user
+
+	// write the updated structure back to the database
+	err = db.writeDB(dbStructure)
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil	
+}
