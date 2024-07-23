@@ -16,16 +16,6 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 		Email string `json:"email"`
 	}
 
-/* 	// from docs: https://pkg.go.dev/github.com/golang-jwt/jwt/v5#Token
-	type Token struct {
-		Raw       string                 // Raw contains the raw token.  Populated when you [Parse] a token
-		Method    SigningMethod          // Method is the signing method used or to be used
-		Header    map[string]interface{} // Header is the first segment of the token in decoded form
-		Claims    Claims                 // Claims is the second segment of the token in decoded form
-		Signature []byte                 // Signature is the third segment of the token in decoded form.  Populated when you Parse a token
-		Valid     bool                   // Valid specifies if the token is valid.  Populated when you Parse/Verify a token
-	} */
-
 	decoder := 	json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
@@ -60,7 +50,7 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 	}
 
 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok {
+	if !ok || claims.Subject == ""{
 		respondWithError(w, http.StatusUnauthorized, "Invalid token claims")
 		return
 	}
