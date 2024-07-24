@@ -81,9 +81,12 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 
 func (db *DB) UpdateUser(userID int, email, hashedPassword string ) (User, error) {
 	// for modifying the database, use Lock and Unlock
-	db.mu.Lock()
-	defer db.mu.Unlock()
-
+	// But since there are mutexes in WriteBD func we don't need mutexes here (to avoid a deadlock)
+	//     The first lock in UpdateUser won't release until the func returns, but WriteDB tries to
+	//     acquire the same lock, causing the app to wait indefinitely (a mutex deadlock)
+	// db.mu.Lock()
+	// defer db.mu.Unlock()
+	
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
