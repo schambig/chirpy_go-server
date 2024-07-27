@@ -3,19 +3,21 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/schambig/chirpy_go-server/internal/auth"
-	"github.com/golang-jwt/jwt/v5"
 )
-
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Password string `json:"password"`
 		Email string `json:"email"`
 		ExpiresInSeconds int `json:"expires_in_seconds,omitempty"`
+	}
+
+	type response struct {
+		User
+		Token string `json:"token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -38,37 +40,24 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mySigningKey := []byte(cfg.JwtSecret)
-
-	expiresInSecondsDefault := 24 * 60 * 60 // 86,400 seconds
-	expiresInSeconds := params.ExpiresInSeconds
-
-	userIDStr := strconv.Itoa(user.ID)
-
 	// if ommited in the JSON, ExpiresInSeconds will be defaulted to 0 (omitempty directive)
+	expiresInSecondsDefault := 24 * 60 * 60 // 86,400 seconds (1 day)
 	if params.ExpiresInSeconds == 0 {
-		expiresInSeconds = expiresInSecondsDefault
+		params.ExpiresInSeconds = expiresInSecondsDefault
 	} else if params.ExpiresInSeconds > expiresInSecondsDefault {
-		expiresInSeconds = expiresInSecondsDefault
+		params.ExpiresInSeconds = expiresInSecondsDefault
 	}
 
-	claims := jwt.RegisteredClaims{
-		Issuer: "chirpy",
-		IssuedAt: jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expiresInSeconds) * time.Second)),
-		Subject: userIDStr,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(mySigningKey)
+	token, err := auth.MakeJWT(user.ID, cfg.JwtSecret, time.Duration(params.ExpiresInSeconds)*time.Second)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error while signing JWT string")
-		return
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create JWT")
 	}
 
-	respondWithJSON(w, http.StatusOK, User{
-		ID: user.ID,
-		Email: user.Email,
-		Token: ss,
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID: user.ID,
+			Email: user.Email,
+		},
+		Token: token,
 	})
 }
