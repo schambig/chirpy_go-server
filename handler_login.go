@@ -17,7 +17,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	type response struct {
 		User
-		Token string `json:"token"`
+		Token string `json:"token,omitempty"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
