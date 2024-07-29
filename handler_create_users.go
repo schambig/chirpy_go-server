@@ -12,13 +12,17 @@ import (
 type User struct {
 	ID int `json:"id"`
 	Email string `json:"email"`
-	Token string `json:"token,omitempty"`
+	Password string `json:"-"` // not include in JSON representation, but be aware of it
 }
 
 func (cfg *apiConfig) handlerCreateUsers(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Password string `json:"password"`
 		Email string `json:"email"`
+	}
+
+	type response struct {
+		User
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -46,8 +50,10 @@ func (cfg *apiConfig) handlerCreateUsers(w http.ResponseWriter, r *http.Request)
 		return		
 	}
 
-	respondWithJSON(w, http.StatusCreated, User{
-		ID: user.ID,
-		Email: user.Email,
+	respondWithJSON(w, http.StatusCreated, response{
+		User: User{
+			ID: user.ID,
+			Email: user.Email,
+		},
 	})
 }
