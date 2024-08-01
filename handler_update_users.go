@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/schambig/chirpy_go-server/internal/auth"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request) {
@@ -25,21 +24,18 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 		return	
 	}
 
+	subject, err := auth.ValidateJWT(token, cfg.JwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT")
+		return		
+	}
+
 	decoder := 	json.NewDecoder(r.Body)
 	params := parameters{}
 	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode request body")
 		return			
-	}
-
-	// validate the signature of the JWT and extract the claims
-	token, err := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(cfg.JwtSecret), nil
-	})
-	if err != nil || !token.Valid {
-		respondWithError(w, http.StatusUnauthorized, "Token is invalid or has expired")
-		return
 	}
 
 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
