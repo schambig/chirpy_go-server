@@ -18,12 +18,14 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 		User
 	}
 
+	// extract token from Authorization header
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't find JWT in r.Header")
 		return	
 	}
 
+	// validate JWT and get subject from claims.Subject field
 	subject, err := auth.ValidateJWT(token, cfg.JwtSecret)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT")
@@ -38,26 +40,20 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 		return			
 	}
 
-	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok || claims.Subject == ""{
-		respondWithError(w, http.StatusUnauthorized, "Invalid token claims")
-		return
-	}
-
 	// updating the user
-	userID, err := strconv.Atoi(claims.Subject)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Invalid user ID in token")
-		return
-	}
-
 	hashedPassword, err := auth.HashPassword(params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password")
 		return
 	}
 
-	user, err := cfg.DB.UpdateUser(userID, params.Email, hashedPassword)
+	userIDInt, err := strconv.Atoi(subject)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Invalid user ID in token")
+		return
+	}
+
+	user, err := cfg.DB.UpdateUser(userIDInt, params.Email, hashedPassword)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't update user")
 		return		
