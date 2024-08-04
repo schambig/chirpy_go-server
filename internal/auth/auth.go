@@ -1,12 +1,17 @@
 package auth
 
 import (
-	"time"
+	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrNoAuthzHeaderIncluded = errors.New("no authz header included in request")
 
 func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -35,4 +40,19 @@ func MakeJWT(userID int, tokenSecret string, expiresIn time.Duration) (string, e
 	})
 
 	return token.SignedString(signingKey)
+}
+
+// extract the token from authorization header
+func GetBearerToken(headers http.Header) (string, error) {
+	authzHeader := headers.Get("Authorization")
+	if authzHeader == "" {
+		return "", ErrNoAuthzHeaderIncluded
+	}
+
+	splitAuthz := strings.Split(authzHeader, " ")
+	if len(splitAuthz) < 2 || splitAuthz[1] != "Bearer" {
+		return "", errors.New("malformed authorization header")
+	}
+
+	return splitAuthz[1], nil
 }
