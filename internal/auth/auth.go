@@ -44,6 +44,18 @@ func MakeJWT(userID int, tokenSecret string, expiresIn time.Duration) (string, e
 
 // extract the token from authorization header
 func GetBearerToken(headers http.Header) (string, error) {
+	/* // alternative to get the token string
+	authzHeader := headers.Get("Authorization")
+	if authzHeader == "" {
+		return "", errors.New("no Authorization header provided")
+	}
+	const bearerPrefix = "Bearer "
+	if !strings.HasPrefix(authzHeader, bearerPrefix) {
+		return "", errors.New("invalid token format in authorization header")
+	}
+	tokenStr := strings.TrimPrefix(authzHeader, bearerPrefix)
+	return tokenStr, nil */
+
 	authzHeader := headers.Get("Authorization")
 	if authzHeader == "" {
 		return "", ErrNoAuthzHeaderIncluded
