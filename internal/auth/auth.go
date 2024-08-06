@@ -68,3 +68,33 @@ func GetBearerToken(headers http.Header) (string, error) {
 
 	return splitAuthz[1], nil
 }
+
+// validate the JWT, use the jwt.ParseWithClaims function to validate the signature of the JWT
+// and extract the claims into a *jwt.Token struct
+// https://pkg.go.dev/github.com/golang-jwt/jwt/v5#ParseWithClaims
+func ValidateJWT(tokenString, tokenSecret string) (string, error) {
+	claimsStruct := jwt.RegisteredClaims{}
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&claimsStruct,
+		func(t *jwt.Token) (interface{}, error) {return []byte(tokenSecret), nil},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	userIDString, err := token.Claims.GetSubject()
+	if err != nil {
+		return "", err
+	}
+
+	issuer, err := token.Claims.GetIssuer()
+	if err != nil {
+		return "", err
+	}
+	if issuer != string("chirpy") {
+		return "", errors.New("invalid issuer")
+	}
+
+	return userIDString, nil
+}
