@@ -51,6 +51,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.MakeJWT(user.ID, cfg.JwtSecret, time.Duration(params.ExpiresInSeconds)*time.Second)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create JWT")
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
