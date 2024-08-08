@@ -21,7 +21,7 @@ func (cfg *apiConfig) handlerUpdateUsers(w http.ResponseWriter, r *http.Request)
 	// extract token from Authorization header
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't find JWT in r.Header")
+		respondWithError(w, http.StatusUnauthorized, "Couldn't find JWT in r.Header")
 		return	
 	}
 
