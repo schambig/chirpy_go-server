@@ -32,7 +32,7 @@ func CheckHashPassword(hash, password string) error {
 func MakeJWT(userID int, tokenSecret string, expiresIn time.Duration) (string, error) {
 	signingKey := []byte(tokenSecret)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.RegisteredClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Issuer: "chirpy",
 		IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(expiresIn)),
@@ -62,7 +62,7 @@ func GetBearerToken(headers http.Header) (string, error) {
 	}
 
 	splitAuthz := strings.Split(authzHeader, " ")
-	if len(splitAuthz) < 2 || splitAuthz[1] != "Bearer" {
+	if len(splitAuthz) < 2 || splitAuthz[0] != "Bearer" {
 		return "", errors.New("malformed authorization header")
 	}
 
